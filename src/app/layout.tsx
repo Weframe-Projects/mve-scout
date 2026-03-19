@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AuthGate from "@/components/AuthGate";
 
 export const metadata: Metadata = {
   title: "MVE Scout",
@@ -18,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-surface">
-        {children}
+        <AuthGate>{children}</AuthGate>
       </body>
     </html>
   );

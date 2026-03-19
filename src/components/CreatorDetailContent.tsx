@@ -37,6 +37,7 @@ import {
   Eye,
   Plus,
   Check,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -96,61 +97,96 @@ export default function CreatorDetailContent({ username, platform: initialPlatfo
     setNotes(storedNotes);
   }, [username]);
 
-  // Fetch report (async, non-blocking)
+  // Refreshing state for the button
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch report from Modash and cache it
+  const fetchReportFromAPI = useCallback(async (plat: Platform, user: string) => {
+    try {
+      const data = await getReport(plat, user);
+
+      if (data.error) {
+        // Try the other platform as fallback
+        const otherPlatform = plat === "instagram" ? "tiktok" : "instagram";
+        try {
+          const fallbackData = await getReport(otherPlatform, user);
+          if (!fallbackData.error) {
+            // Cache and set
+            localStorage.setItem(
+              `mve_report_${user}`,
+              JSON.stringify({ data: fallbackData, fetchedAt: Date.now() })
+            );
+            setReport(fallbackData);
+            setPlatform(otherPlatform);
+            return;
+          }
+        } catch {
+          // Fallback also failed
+        }
+        setReportError("Could not load report for this creator.");
+      } else {
+        // Cache and set
+        localStorage.setItem(
+          `mve_report_${user}`,
+          JSON.stringify({ data, fetchedAt: Date.now() })
+        );
+        setReport(data);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to load report";
+      if (msg.includes("retry_later") || msg.includes("don't have audience")) {
+        setReportError("Modash doesn't have audience data for this creator yet. It's being generated — try again in a couple of hours.");
+      } else if (msg.includes("account_removed") || msg.includes("is removed")) {
+        setReportError("This account has been removed or is no longer available on the platform.");
+      } else if (msg.includes("not_found")) {
+        setReportError("Creator not found on this platform. They may have changed their username.");
+      } else {
+        setReportError(msg);
+      }
+    }
+  }, []);
+
+  // Load report: use cache if available, otherwise fetch
   useEffect(() => {
     let cancelled = false;
 
-    const fetchReport = async () => {
+    const loadReport = async () => {
       setReportLoading(true);
       setReportError(null);
 
-      try {
-        const data = await getReport(platform, username);
-        if (cancelled) return;
-
-        if (data.error) {
-          // Try the other platform as fallback
-          const otherPlatform =
-            platform === "instagram" ? "tiktok" : "instagram";
-          try {
-            const fallbackData = await getReport(otherPlatform, username);
-            if (cancelled) return;
-            if (!fallbackData.error) {
-              setReport(fallbackData);
-              setPlatform(otherPlatform);
-              setReportLoading(false);
-              return;
-            }
-          } catch {
-            // Fallback also failed
+      // Check localStorage cache
+      const cached = localStorage.getItem(`mve_report_${username}`);
+      if (cached) {
+        try {
+          const { data } = JSON.parse(cached);
+          if (data && !data.error) {
+            setReport(data);
+            setReportLoading(false);
+            return; // Use cache, don't fetch
           }
-          setReportError("Could not load report for this creator.");
-        } else {
-          console.log("[Report]", JSON.stringify(data).slice(0, 1000));
-          setReport(data);
+        } catch {
+          // Bad cache, fetch fresh
         }
-      } catch (err) {
-        if (cancelled) return;
-        const msg = err instanceof Error ? err.message : "Failed to load report";
-        if (msg.includes("retry_later") || msg.includes("don't have audience")) {
-          setReportError("Modash doesn't have audience data for this creator yet. It's being generated — try again in a couple of hours.");
-        } else if (msg.includes("account_removed") || msg.includes("is removed")) {
-          setReportError("This account has been removed or is no longer available on the platform.");
-        } else if (msg.includes("not_found")) {
-          setReportError("Creator not found on this platform. They may have changed their username.");
-        } else {
-          setReportError(msg);
-        }
-      } finally {
-        if (!cancelled) setReportLoading(false);
       }
+
+      // No cache — fetch from API
+      if (!cancelled) {
+        await fetchReportFromAPI(platform, username);
+      }
+      if (!cancelled) setReportLoading(false);
     };
 
-    fetchReport();
-    return () => {
-      cancelled = true;
-    };
-  }, [platform, username]);
+    loadReport();
+    return () => { cancelled = true; };
+  }, [platform, username, fetchReportFromAPI]);
+
+  // Manual refresh handler
+  const handleRefreshReport = useCallback(async () => {
+    setRefreshing(true);
+    setReportError(null);
+    await fetchReportFromAPI(platform, username);
+    setRefreshing(false);
+  }, [platform, username, fetchReportFromAPI]);
 
   // Fetch content (on-demand when Content tab is selected)
   const fetchContent = useCallback(async () => {
@@ -319,6 +355,14 @@ export default function CreatorDetailContent({ username, platform: initialPlatfo
               {(creator?.isVerified || report?.profile?.isVerified || searchResult?.profile?.isVerified) && (
                 <span className="text-blue-500">✓</span>
               )}
+              <button
+                onClick={handleRefreshReport}
+                disabled={refreshing}
+                className="p-1.5 rounded-md text-ink-muted hover:text-ink hover:bg-surface-secondary transition-colors disabled:opacity-50"
+                title="Refresh report"
+              >
+                <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+              </button>
               {status && (
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor(status)}`}

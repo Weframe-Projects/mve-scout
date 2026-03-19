@@ -1,0 +1,12 @@
+import { NextResponse } from "next/server";
+
+export async function POST(req: Request) {
+  const { password } = await req.json();
+  const correct = process.env.AUTH_PASSWORD || "mve2024";
+
+  if (password === correct) {
+    return NextResponse.json({ ok: true });
+  }
+
+  return NextResponse.json({ ok: false }, { status: 401 });
+}

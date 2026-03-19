@@ -5,7 +5,7 @@ import Nav from "@/components/Nav";
 import PlatformLogo from "@/components/PlatformLogo";
 import type { WatchlistCreator, CreatorStatus } from "@/lib/types";
 import { formatNumber, formatPercent, statusLabel, statusColor } from "@/lib/utils";
-import { Users, Plus, X, Loader2, ChevronDown, List, LayoutGrid, Trash2 } from "lucide-react";
+import { Users, Plus, X, Loader2, ChevronDown, List, LayoutGrid, Trash2, Download } from "lucide-react";
 import Link from "next/link";
 import {
   DragDropContext,
@@ -122,6 +122,29 @@ export default function WatchlistPage() {
     },
     [creators, statuses]
   );
+
+  const exportCSV = useCallback(() => {
+    const header = "Name,Handle,Platform,Followers,ER%,Status,Date Added";
+    const rows = creators.map((c) => {
+      const status = statusLabel(statuses[c.username] || "watching");
+      const date = dates[c.username]
+        ? new Date(dates[c.username]).toLocaleDateString()
+        : "";
+      // Escape commas in display names
+      const name = c.display_name.includes(",")
+        ? `"${c.display_name}"`
+        : c.display_name;
+      return `${name},@${c.username},${c.platform},${c.followers},${c.engagement_rate}%,${status},${date}`;
+    });
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `mve-watchlist-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [creators, statuses, dates]);
 
   const addByHandle = async () => {
     if (!addHandle.trim()) return;
@@ -254,6 +277,16 @@ export default function WatchlistPage() {
                 <LayoutGrid size={16} />
               </button>
             </div>
+            {creators.length > 0 && (
+              <button
+                onClick={exportCSV}
+                className="flex items-center gap-2 px-4 py-2.5 border border-edge text-ink rounded-lg text-sm font-medium hover:bg-surface-secondary transition-colors"
+                title="Export watchlist as CSV"
+              >
+                <Download size={16} />
+                Export
+              </button>
+            )}
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-ink text-surface rounded-lg text-sm font-medium hover:bg-ink/90 transition-colors"
