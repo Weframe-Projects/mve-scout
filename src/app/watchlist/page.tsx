@@ -35,7 +35,7 @@ export default function WatchlistPage() {
   const [statuses, setStatuses] = useState<Record<string, CreatorStatus>>({});
   const [dates, setDates] = useState<Record<string, string>>({});
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("kanban");
   const [showAddModal, setShowAddModal] = useState(false);
   const [addHandle, setAddHandle] = useState("");
   const [addPlatform, setAddPlatform] = useState<"instagram" | "tiktok">("instagram");

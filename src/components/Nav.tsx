@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Users } from "lucide-react";
+import { Search, Users, LogOut } from "lucide-react";
 
 const tabs = [
   { label: "Search", href: "/discover", icon: Search },
@@ -40,6 +40,16 @@ export default function Nav() {
               </Link>
             );
           })}
+          <button
+            onClick={() => {
+              sessionStorage.removeItem("mve_authenticated");
+              window.location.href = "/";
+            }}
+            className="ml-2 p-2 rounded-lg text-ink-muted hover:text-ink hover:bg-surface-secondary transition-colors"
+            title="Sign out"
+          >
+            <LogOut size={16} />
+          </button>
         </nav>
       </div>
     </header>
