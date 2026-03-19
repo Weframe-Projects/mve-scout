@@ -77,7 +77,7 @@ export default function DiscoverPage() {
 
     const audience: Record<string, unknown> = {};
     if (audienceGeo) {
-      audience.geo = [{ id: Number(audienceGeo.location.id), weight: audienceGeo.weight }];
+      audience.location = [{ id: Number(audienceGeo.location.id), weight: audienceGeo.weight }];
     }
 
     const filters: SearchFilters = {
