@@ -62,6 +62,21 @@ export const ER_OPTIONS = [
 
 export type { LocationValue };
 
+export interface AudienceGeoValue {
+  location: LocationValue;
+  weight: number; // 0-1, e.g. 0.4 = 40%
+}
+
+export const AUDIENCE_WEIGHT_OPTIONS = [
+  { label: "> 10%", value: 0.1 },
+  { label: "> 20%", value: 0.2 },
+  { label: "> 30%", value: 0.3 },
+  { label: "> 40%", value: 0.4 },
+  { label: "> 50%", value: 0.5 },
+  { label: "> 60%", value: 0.6 },
+  { label: "> 70%", value: 0.7 },
+];
+
 interface FilterPanelProps {
   platform: PlatformOption;
   setPlatform: (v: PlatformOption) => void;
@@ -79,6 +94,8 @@ interface FilterPanelProps {
   setErMinIndex: (v: number) => void;
   location: LocationValue | null;
   setLocation: (v: LocationValue | null) => void;
+  audienceGeo: AudienceGeoValue | null;
+  setAudienceGeo: (v: AudienceGeoValue | null) => void;
   loading: boolean;
   onSearch: () => void;
   onClear: () => void;
@@ -102,6 +119,7 @@ export default function FilterPanel({
   platform, setPlatform, niche, setNiche, topic, setTopic, gender, setGender,
   followerMin, setFollowerMin, followerMax, setFollowerMax,
   erMinIndex, setErMinIndex, location, setLocation,
+  audienceGeo, setAudienceGeo,
   loading, onSearch, onClear,
 }: FilterPanelProps) {
   return (
@@ -184,6 +202,40 @@ export default function FilterPanel({
           </select>
         </Sel>
 
+      </div>
+
+      {/* Audience geo filter */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="col-span-2">
+          <label className="block text-xs font-medium text-ink-secondary mb-1.5">
+            Audience Location
+            <span className="ml-1 text-ink-muted font-normal">(country or city)</span>
+          </label>
+          <LocationSearch
+            platform={platform}
+            value={audienceGeo?.location ?? null}
+            onChange={(loc) => {
+              if (loc) {
+                setAudienceGeo({ location: loc, weight: audienceGeo?.weight ?? 0.3 });
+              } else {
+                setAudienceGeo(null);
+              }
+            }}
+          />
+        </div>
+        {audienceGeo && (
+          <Sel label="Min Audience %">
+            <select
+              value={audienceGeo.weight}
+              onChange={(e) => setAudienceGeo({ ...audienceGeo, weight: Number(e.target.value) })}
+              className={selectCls}
+            >
+              {AUDIENCE_WEIGHT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </Sel>
+        )}
       </div>
 
       {location && platform !== "instagram" && (

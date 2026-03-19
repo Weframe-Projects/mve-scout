@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Nav from "@/components/Nav";
-import FilterPanel, { ER_OPTIONS, FOLLOWER_OPTIONS, type PlatformOption, type LocationValue, type TopicValue } from "@/components/discover/FilterPanel";
+import FilterPanel, { ER_OPTIONS, FOLLOWER_OPTIONS, type PlatformOption, type LocationValue, type TopicValue, type AudienceGeoValue } from "@/components/discover/FilterPanel";
 import LocationSearch from "@/components/discover/LocationSearch";
 import CreatorCard from "@/components/discover/CreatorCard";
 import SlidePanel from "@/components/SlidePanel";
@@ -27,6 +27,7 @@ export default function DiscoverPage() {
   const [followerMax, setFollowerMax] = useState(0);
   const [erMinIndex, setErMinIndex] = useState(0);
   const [location, setLocation] = useState<LocationValue | null>(null);
+  const [audienceGeo, setAudienceGeo] = useState<AudienceGeoValue | null>(null);
 
   // Results state
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -74,13 +75,19 @@ export default function DiscoverPage() {
       influencer.engagementRate = erOption.value;
     }
 
+    const audience: Record<string, unknown> = {};
+    if (audienceGeo) {
+      audience.geo = [{ id: Number(audienceGeo.location.id), weight: audienceGeo.weight }];
+    }
+
     const filters: SearchFilters = {
       platform,
       influencer,
+      audience: Object.keys(audience).length > 0 ? audience : undefined,
       sort: { field: "followers", direction: "desc" },
     };
     return filters;
-  }, [followerMin, followerMax, gender, niche, topic, location, erMinIndex]);
+  }, [followerMin, followerMax, gender, niche, topic, location, erMinIndex, audienceGeo]);
 
   // ER applied client-side (Modash search doesn't support it reliably)
   const applyClientFilters = (raw: SearchResult[]): SearchResult[] => {
@@ -205,6 +212,7 @@ export default function DiscoverPage() {
     setFollowerMax(0);
     setErMinIndex(0);
     setLocation(null);
+    setAudienceGeo(null);
     setResults([]);
     setTotal(0);
     setHasSearched(false);
@@ -369,6 +377,8 @@ export default function DiscoverPage() {
               setErMinIndex={setErMinIndex}
               location={location}
               setLocation={setLocation}
+              audienceGeo={audienceGeo}
+              setAudienceGeo={setAudienceGeo}
               loading={loading}
               onSearch={() => doSearch(false)}
               onClear={handleClear}

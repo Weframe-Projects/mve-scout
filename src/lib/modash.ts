@@ -5,6 +5,7 @@ const BASE = "/api/modash";
 export interface SearchFilters {
   platform: "instagram" | "tiktok";
   influencer?: Record<string, unknown>;
+  audience?: Record<string, unknown>;
   sort?: { field: string; direction: string };
 }
 
@@ -12,10 +13,14 @@ export async function searchCreators(
   filters: SearchFilters,
   page = 0
 ): Promise<SearchResponse> {
+  const filter: Record<string, unknown> = {
+    influencer: filters.influencer || {},
+  };
+  if (filters.audience && Object.keys(filters.audience).length > 0) {
+    filter.audience = filters.audience;
+  }
   const body: Record<string, unknown> = {
-    filter: {
-      influencer: filters.influencer || {},
-    },
+    filter,
     page,
     sort: filters.sort || { field: "followers", direction: "desc" },
   };
