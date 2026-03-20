@@ -119,16 +119,16 @@ export default function DiscoverPage() {
     try {
       if (isAI) {
         // Use Modash AI Search API (real content-based search)
-        const aiFilters: { followersCount?: { min?: number; max?: number }; gender?: string; engagementRate?: number } = {};
+        const aiFilters: { followersCount?: { min?: number; max?: number }; gender?: string; engagementRate?: { min: number } } = {};
         if (followerMin > 0 || followerMax > 0) {
           aiFilters.followersCount = {
             ...(followerMin > 0 ? { min: followerMin } : {}),
             ...(followerMax > 0 ? { max: followerMax } : {}),
           };
         }
-        if (gender) aiFilters.gender = gender;
+        if (gender) aiFilters.gender = gender.toUpperCase();
         const erOpt = ER_OPTIONS[erMinIndex];
-        if (erOpt.value !== undefined) aiFilters.engagementRate = erOpt.value;
+        if (erOpt.value !== undefined) aiFilters.engagementRate = { min: erOpt.value };
 
         const platforms: Array<"instagram" | "tiktok"> = platformOption === "both" ? ["instagram", "tiktok"] : [platformOption];
         const searchResults = await Promise.all(
@@ -149,16 +149,10 @@ export default function DiscoverPage() {
         let aiFiltered = combined;
         if (followerMin > 0) aiFiltered = aiFiltered.filter(r => r.profile.followers >= followerMin);
         if (followerMax > 0) aiFiltered = aiFiltered.filter(r => r.profile.followers <= followerMax);
-        const afterFollower = aiFiltered;
-        if (erOpt.value !== undefined) {
-          aiFiltered = aiFiltered.filter(r => r.profile.engagementRate >= erOpt.value!);
-        }
-        if (!loadMore) setErFilteredAll(afterFollower.length > 0 && aiFiltered.length === 0 && erMinIndex > 0);
         setResults(loadMore ? (prev) => [...prev, ...aiFiltered] : aiFiltered);
         setTotal(totalCount);
         setCurrentPage(page);
-        const didErFilterAll = afterFollower.length > 0 && aiFiltered.length === 0 && erMinIndex > 0;
-        if (!loadMore && aiFiltered.length === 0 && !didErFilterAll) setError("No results found. Try a different description.");
+        if (!loadMore && aiFiltered.length === 0) setError("No results found. Try a different description.");
       } else {
         if (platformOption === "both") {
           const [igData, ttData] = await Promise.all([
