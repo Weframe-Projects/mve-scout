@@ -16,9 +16,11 @@ interface LocationSearchProps {
   onChange: (v: LocationValue | null) => void;
   /** compact = smaller padding for AI filters grid */
   compact?: boolean;
+  /** Only show country-level results (no cities) */
+  countriesOnly?: boolean;
 }
 
-export default function LocationSearch({ platform, value, onChange, compact }: LocationSearchProps) {
+export default function LocationSearch({ platform, value, onChange, compact, countriesOnly }: LocationSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<LocationValue[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,10 +42,14 @@ export default function LocationSearch({ platform, value, onChange, compact }: L
         const p = platform === "both" ? "instagram" : platform;
         const locs = await lookupLocations(query, p);
         // Filter out nonsensical results (Modash sometimes returns unrelated places)
-        const relevant = locs.filter((l) =>
+        let relevant = locs.filter((l) =>
           l.title.toLowerCase().includes(query.toLowerCase()) ||
           l.name.toLowerCase().includes(query.toLowerCase())
-        ).slice(0, 7);
+        );
+        if (countriesOnly) {
+          relevant = relevant.filter((l) => l.name === l.title);
+        }
+        relevant = relevant.slice(0, 7);
         setResults(relevant);
         setOpen(relevant.length > 0);
       } catch {
@@ -104,7 +110,7 @@ export default function LocationSearch({ platform, value, onChange, compact }: L
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="e.g. London, Los Angeles, UK"
+            placeholder={countriesOnly ? "e.g. United States, United Kingdom" : "e.g. London, Los Angeles, UK"}
             className={inputCls}
           />
           {loading && (

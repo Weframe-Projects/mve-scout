@@ -215,6 +215,7 @@ export default function FilterPanel({
           </label>
           <LocationSearch
             platform="instagram"
+            countriesOnly={platform === "tiktok" || platform === "both"}
             value={audienceGeo?.location ?? null}
             onChange={(loc) => {
               if (loc) {
