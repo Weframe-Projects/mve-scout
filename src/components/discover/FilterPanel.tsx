@@ -209,10 +209,12 @@ export default function FilterPanel({
         <div className="col-span-2">
           <label className="block text-xs font-medium text-ink-secondary mb-1.5">
             Audience Location
-            <span className="ml-1 text-ink-muted font-normal">(country or city)</span>
+            <span className="ml-1 text-ink-muted font-normal">
+              {platform === "tiktok" ? "(country only)" : "(country or city)"}
+            </span>
           </label>
           <LocationSearch
-            platform={platform}
+            platform="instagram"
             value={audienceGeo?.location ?? null}
             onChange={(loc) => {
               if (loc) {
