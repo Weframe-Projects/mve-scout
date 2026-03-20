@@ -136,7 +136,7 @@ export async function aiSearch(
   aiFilters: {
     followersCount?: { min?: number; max?: number };
     gender?: string;
-    engagementRate?: number;
+    engagementRate?: { min: number };
   } = {},
   page = 0
 ): Promise<SearchResponse> {

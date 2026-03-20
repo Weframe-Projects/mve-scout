@@ -128,7 +128,7 @@ export default function DiscoverPage() {
         }
         if (gender) aiFilters.gender = gender.toUpperCase();
         const erOpt = ER_OPTIONS[erMinIndex];
-        if (erOpt.value !== undefined) aiFilters.engagementRate = { min: erOpt.value };
+        if (erOpt.value !== undefined) aiFilters.engagementRate = { min: erOpt.value * 100 };
 
         const platforms: Array<"instagram" | "tiktok"> = platformOption === "both" ? ["instagram", "tiktok"] : [platformOption];
         const searchResults = await Promise.all(
