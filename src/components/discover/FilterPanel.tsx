@@ -6,31 +6,31 @@ import TopicSearch, { type TopicValue } from "./TopicSearch";
 
 export type PlatformOption = "instagram" | "tiktok" | "both";
 
-// Niche values are sent as influencer.relevance = ["#value"] in the search filter.
-// Values must match Modash topic tags exactly (lowercase in the API call).
-export const NICHES: { label: string; value: string }[] = [
-  { label: "Beauty",      value: "beauty"      },
-  { label: "Cars",        value: "cars"        },
-  { label: "Comedy",      value: "comedy"      },
-  { label: "Cooking",     value: "cooking"     },
-  { label: "Dance",       value: "dance"       },
-  { label: "Fashion",     value: "fashion"     },
-  { label: "Fitness",     value: "fitness"     },
-  { label: "Food",        value: "food"        },
-  { label: "Gaming",      value: "gaming"      },
-  { label: "Health",      value: "health"      },
-  { label: "Lifestyle",   value: "lifestyle"   },
-  { label: "Luxury",      value: "luxury"      },
-  { label: "Makeup",      value: "makeup"      },
-  { label: "Music",       value: "music"       },
-  { label: "Pets",        value: "pets"        },
-  { label: "Photography", value: "photographer" },
-  { label: "Skincare",    value: "skincare"    },
-  { label: "Sports",      value: "sports"      },
-  { label: "Tech",        value: "tech"        },
-  { label: "Travel",      value: "travel"      },
-  { label: "Wellness",    value: "wellness"    },
-  { label: "Yoga",        value: "yoga"        },
+// Niche values are sent as influencer.relevance = ["#tag1", "#tag2", ...] in the search filter.
+// Multiple tags per niche are ORed together by Modash for broader, more accurate results.
+export const NICHES: { label: string; tags: string[] }[] = [
+  { label: "Beauty",      tags: ["beauty", "beautytips", "beautyblogger", "beautyinfluencer"] },
+  { label: "Cars",        tags: ["cars", "carsofinstagram", "automotive", "carlifestyle"] },
+  { label: "Comedy",      tags: ["comedy", "funnyvideos", "comedyvideos", "comedians"] },
+  { label: "Cooking",     tags: ["cooking", "cookingathome", "homecooking", "recipe"] },
+  { label: "Dance",       tags: ["dance", "dancer", "dancing", "choreography"] },
+  { label: "Fashion",     tags: ["fashion", "fashionblogger", "fashionstyle", "streetstyle"] },
+  { label: "Fitness",     tags: ["fitness", "fitnessmotivation", "workout", "fitfam"] },
+  { label: "Food",        tags: ["food", "foodie", "foodblogger", "foodlover"] },
+  { label: "Gaming",      tags: ["gaming", "gamer", "videogames", "gamingcommunity"] },
+  { label: "Health",      tags: ["health", "healthylifestyle", "healthyliving", "healthtips"] },
+  { label: "Lifestyle",   tags: ["lifestyle", "lifestyleblogger", "lifestyleinfluencer", "dailylife"] },
+  { label: "Luxury",      tags: ["luxury", "luxurylifestyle", "luxuryfashion"] },
+  { label: "Makeup",      tags: ["makeup", "makeupartist", "makeuptutorial", "mua"] },
+  { label: "Music",       tags: ["music", "musician", "singer", "newmusic"] },
+  { label: "Pets",        tags: ["pets", "dogsofinstagram", "catsofinstagram", "petlovers"] },
+  { label: "Photography", tags: ["photographer", "photographylovers", "portraitphotography", "streetphotography"] },
+  { label: "Skincare",    tags: ["skincare", "skincareroutine", "skincaretips", "skincareproducts"] },
+  { label: "Sports",      tags: ["sports", "athlete", "sportslife", "sportsmotivation"] },
+  { label: "Tech",        tags: ["tech", "technology", "techreview", "gadgets"] },
+  { label: "Travel",      tags: ["travel", "travelblogger", "travelgram", "travelphotography"] },
+  { label: "Wellness",    tags: ["wellness", "selfcare", "wellbeing", "holistichealth"] },
+  { label: "Yoga",        tags: ["yoga", "yogapractice", "yogainspiration", "yogalife"] },
 ];
 
 export type { TopicValue };
@@ -138,7 +138,7 @@ export default function FilterPanel({
           <select value={niche} onChange={(e) => setNiche(e.target.value)} className={selectCls}>
             <option value="">Any</option>
             {NICHES.map((n) => (
-              <option key={n.value} value={n.value}>{n.label}</option>
+              <option key={n.tags[0]} value={n.tags[0]}>{n.label}</option>
             ))}
           </select>
         </Sel>

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Nav from "@/components/Nav";
-import FilterPanel, { ER_OPTIONS, FOLLOWER_OPTIONS, type PlatformOption, type LocationValue, type TopicValue, type AudienceGeoValue } from "@/components/discover/FilterPanel";
+import FilterPanel, { ER_OPTIONS, FOLLOWER_OPTIONS, NICHES, type PlatformOption, type LocationValue, type TopicValue, type AudienceGeoValue } from "@/components/discover/FilterPanel";
 import LocationSearch from "@/components/discover/LocationSearch";
 import CreatorCard from "@/components/discover/CreatorCard";
 import SlidePanel from "@/components/SlidePanel";
@@ -61,13 +61,14 @@ export default function DiscoverPage() {
     }
     if (gender) influencer.gender = gender;
     // Topic (precise autocomplete) takes precedence over niche dropdown; both use relevance
-    // Note: for TikTok, niche tags may differ — resolvedNicheTag overrides when provided
+    // Niche sends multiple related hashtags (ORed by Modash) for broader results
     if (topic) {
       influencer.relevance = [`#${topic.tag}`];
     } else if (resolvedNicheTag) {
       influencer.relevance = [`#${resolvedNicheTag}`];
     } else if (niche) {
-      influencer.relevance = [`#${niche}`];
+      const nicheEntry = NICHES.find((n) => n.tags[0] === niche);
+      influencer.relevance = nicheEntry ? nicheEntry.tags.map((t) => `#${t}`) : [`#${niche}`];
     }
     if (location) influencer.location = [Number(location.id)];
     const erOption = ER_OPTIONS[erMinIndex];
@@ -89,12 +90,8 @@ export default function DiscoverPage() {
     return filters;
   }, [followerMin, followerMax, gender, niche, topic, location, erMinIndex, audienceGeo]);
 
-  // ER applied client-side (Modash search doesn't support it reliably)
-  const applyClientFilters = (raw: SearchResult[]): SearchResult[] => {
-    const erOption = ER_OPTIONS[erMinIndex];
-    if (erOption.value === undefined) return raw;
-    return raw.filter((r) => r.profile.engagementRate >= erOption.value!);
-  };
+  // Trust Modash server-side ER filter — no client-side re-filtering
+  const applyClientFilters = (raw: SearchResult[]): SearchResult[] => raw;
 
   const doSearch = async (isAI: boolean, loadMore = false) => {
     const page = loadMore ? currentPage + 1 : 0;
