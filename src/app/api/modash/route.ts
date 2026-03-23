@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logSearch } from "@/lib/supabase";
 
 const API_BASE = "https://api.modash.io/v1";
 const API_KEY = process.env.MODASH_API_KEY!;
@@ -96,6 +97,33 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       return NextResponse.json(data, { status: res.status });
+    }
+
+    // Log search and ai-search actions to Supabase
+    if (action === "search" || action === "ai-search") {
+      const resultCount = action === "search"
+        ? data?.total ?? data?.lookalikes?.length ?? 0
+        : data?.lookalikes?.length ?? 0;
+
+      logSearch({
+        action,
+        platform,
+        query: action === "ai-search" ? body?.query : undefined,
+        filters: action === "search" ? body : body?.filters,
+        resultCount,
+        userAgent: req.headers.get("user-agent") || undefined,
+      }).catch(() => {}); // fire-and-forget, don't block response
+    }
+
+    // Also log report lookups (when someone clicks into a creator)
+    if (action === "report" || action === "lookup") {
+      logSearch({
+        action,
+        platform,
+        query: username,
+        resultCount: data?.error ? 0 : 1,
+        userAgent: req.headers.get("user-agent") || undefined,
+      }).catch(() => {});
     }
 
     // Normalize Modash report response to match our TypeScript types
