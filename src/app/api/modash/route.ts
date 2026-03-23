@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
         action,
         platform,
         query: action === "ai-search" ? body?.query : undefined,
-        filters: action === "search" ? body : body?.filters,
+        filters: action === "search" ? body?.filter : body?.filters,
         resultCount,
         userAgent: req.headers.get("user-agent") || undefined,
       }).catch(() => {}); // fire-and-forget, don't block response
